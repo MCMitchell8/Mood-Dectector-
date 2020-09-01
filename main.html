@@ -3,21 +3,20 @@
 <head>
     <title>Mood Detector</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen"/>
 </head>
+<body style="background-color:rgb(192, 192, 192);"></body>
 <body>
-<script type="text/javascript">
+<script>
     function processImage() {
-        // **********************************************
-        // *** Update or verify the following values. ***
-        // **********************************************
-        let subscriptionKey = 'INSERT YOUR KEY HERE';
-        let endpoint = 'INSERT YOUR ENDPOINT URL HERE';
+    let subscriptionKey = '87140ffeaece4eca9219040ea40a4540'
+    let endpoint = 'https://southcentralus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/88583a50-9fff-41e5-9300-329cab703b73/classify/iterations/Iteration1/url';
         if (!subscriptionKey) { throw new Error('Set your environment variables for your subscription key and endpoint.'); }
-        
+
         // Display the image.
         var sourceImageUrl = document.getElementById("inputImage").value;
         document.querySelector("#sourceImage").src = sourceImageUrl;
-        // Make the REST API call.
+         // Make the REST API call.
         $.ajax({
             url: endpoint + "?",
             // Request headers.
@@ -29,39 +28,51 @@
             // Request body.
             data: '{"url": ' + '"' + sourceImageUrl + '"}',
         })
-        .done(function(data) {
-            // Show formatted JSON on webpage.
-            $("#responseTextArea").val(JSON.stringify(data, null, 2));
-        })
-        .fail(function(jqXHR, textStatus, errorThrown) {
-            // Display error message.
-            var errorString = (errorThrown === "") ? "Error. " :
-                errorThrown + " (" + jqXHR.status + "): ";
-            errorString += (jqXHR.responseText === "") ? "" :
-                jQuery.parseJSON(jqXHR.responseText).message;
-            alert(errorString);
-        });
+
+            .done(function(data) {
+                // Show result with highest probability
+                var max = 0;
+                var index = 0;
+                for (var i=0; i<data['predictions'].length; i++) {
+                    if (data['predictions'][i]['probability'] > max) {
+                        index = i;
+                        max = data['predictions'][0]['probability'];
+                    }
+                }
+                const results = "Mood: " + data['predictions'][index]['tagName'] + "\n" + "Confidence: " + Math.round(100 * max) + "%";
+
+                $("#responseTextArea").val(results);
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                // Display error message.
+                var errorString = (errorThrown === "") ? "Error. " :
+                    errorThrown + " (" + jqXHR.status + "): ";
+                errorString += (jqXHR.responseText === "") ? "" :
+                    jQuery.parseJSON(jqXHR.responseText).message;
+                alert(errorString);
+            });
     };
 </script>
-<h1>Analyze image:</h1>
-Enter the URL to an image, then click the <strong>Analyze image</strong> button.
+<p style="font-family:'Trebuchet MS'; font-size:28px; text-align:center; font-size:xx-large;"><strong>Predict the student's mood during a video conference:</strong></p>
+<br><br/>
+<p style="font-family:'Trebuchet MS'; font-size:15px"> Enter the URL of an image, then click the <strong>Analyze </strong> button.
 <br><br>
-Image to analyze:
+Image URL:
 <input type="text" name="inputImage" id="inputImage"
-    value="https://cdn.shopify.com/s/files/1/2336/3219/products/shutterstock_336818993meyer_x850.jpg" />
-<button onclick="processImage()">Analyze image</button>
+       value="" />
+<button onclick="processImage()">Analyze</button>
 <br><br>
-<div id="wrapper" style="width:1020px; display:table;">
-    <div id="jsonOutput" style="width:600px; display:table-cell;">
-        Response:
-        <br><br>
-        <textarea id="responseTextArea" class="UIInput"
-                  style="width:580px; height:400px;"></textarea>
-    </div>
+<div id="wrapper" style="width:1020px; display:table; font-family:'Trebuchet MS'; font-size:15px">
     <div id="imageDiv" style="width:420px; display:table-cell;">
-        Source image:
+        Source Image:
         <br><br>
         <img id="sourceImage" width="400" />
+    </div>
+    <div id="jsonOutput" style="width:600px; display:table-cell;">
+        Result:
+        <br><br>
+        <textarea id="responseTextArea" class="UIInput";
+                  style="width:180px; height:50px; font-family:'Trebuchet MS'; font-size:20px"></textarea>
     </div>
 </div>
 </body>
